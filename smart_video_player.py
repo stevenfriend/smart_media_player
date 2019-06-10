@@ -1,15 +1,22 @@
 import cv2
+import keyboard
 
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 cap = cv2.VideoCapture(0)
 
+prev_state = False
+curr_state = False
+
 while True:
     ret, frame = cap.read()
 
     if not ret:
         break
+
+    prev_state = curr_state
+    curr_state = False
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.1, 5)
@@ -20,9 +27,13 @@ while True:
         cropped_face_gray = gray[y : y + h, x : x + w]
         eyes = eye_cascade.detectMultiScale(cropped_face_gray, 1.1, 5)
         for (ex, ey, ew, eh) in eyes:
-            curr_sate = True
+            curr_state = True
             cv2.rectangle(cropped_face, (ex, ey),
                 (ex + ew, ey + eh), (0, 255, 0), 2)
+        if prev_state == False and curr_state == True:
+            keyboard.send('ctrl+shift+a')
+        if prev_state == True and curr_state == False:
+            keyboard.send('ctrl+shift+q')
 
     cv2.imshow('Face detection', frame)
 
